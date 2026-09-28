@@ -21,7 +21,7 @@ contract ERC20Token{
         symbol = _symbol;
         decimals = 18;
 
-        _totalSupply = _initialSupply;
+        _totalSupply = _initialSupply * 10 ** decimals;
         _balance[msg.sender] = _totalSupply;
         emit Transfer(address(0), msg.sender, _totalSupply);
 
