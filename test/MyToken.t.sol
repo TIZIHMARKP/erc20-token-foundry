@@ -37,6 +37,12 @@ contract MyTestToken is Test {
         token.transfer(user2, 1000 * 10 ** 18);
     }
 
+    function test_Transfer_ToZeroAddress_Reverts() public{
+        vm.prank(owner);
+        vm.expectRevert("ERC20: transfer from the zero address");
+        token.transfer(address(0), 1 * 10 ** 18);
+    }
+
 }
 
 
