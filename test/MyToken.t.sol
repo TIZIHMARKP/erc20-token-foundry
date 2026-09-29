@@ -17,6 +17,7 @@ contract MyTestToken is Test {
 
     }
 
+    // ============ Deployment ============
     function test_Deployment() public view {
         assertEq(token.name(), "TestToken");
         assertEq(token.symbol(), "TT");
@@ -24,6 +25,7 @@ contract MyTestToken is Test {
         assertEq(token.balanceOf(owner), 1000 * 10 ** 18);
     }
 
+    // ============ Transfer ============
     function test_Transfer() public {
         vm.prank(owner);
         token.transfer(user1, 100 * 10 ** 18);
@@ -42,6 +44,15 @@ contract MyTestToken is Test {
         vm.expectRevert("ERC20: transfer from the zero address");
         token.transfer(address(0), 1 * 10 ** 18);
     }
+
+    function test_Transfer_EmitsEvent() public {
+        vm.prank(owner);
+        vm.expectEmit(true, true, false, true);
+        emit ERC20Token.Transfer(owner, user1, 100 * 10 ** 18);
+        token.transfer(user1, 100 * 10 ** 18);
+    }
+
+
 
 }
 
