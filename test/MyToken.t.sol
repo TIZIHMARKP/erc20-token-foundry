@@ -82,7 +82,51 @@ contract MyTestToken is Test {
         assertEq(token.allowance(owner, user1), 200 * 10 ** 18);
     }
 
-    
+
+    // ============ transferFrom ============
+    function test_TransferFrom() public {
+        // owner approves user1 to spend 300
+        vm.prank(owner);
+        token.approve(user1, 300 * 10 ** 18);
+
+        // user1 moves 100 from owner to user2
+        vm.prank(user1);
+        token.transferFrom(owner, user2, 100 * 10 ** 18);
+
+        assertEq(token.balanceOf(user2), 100 * 10 ** 18);
+        assertEq(token.balanceOf(owner), 900 * 10 ** 18);
+        assertEq(token.allowance(owner, user1), 200 * 10 ** 18); // reduced
+    }
+
+    function test_TransferFrom_InsufficientAllowance() public {
+        vm.prank(owner);
+        token.approve(user1, 50 * 10 ** 18);
+
+        vm.prank(user1);
+        vm.expectRevert("ERC20: insufficient allowance");
+        token.transferFrom(owner, user2, 100 * 10 ** 18);
+    }
+
+    function test_TransferFrom_InsufficientBalance() public {
+        vm.prank(owner);
+        token.approve(user1, 5000 * 10 ** 18);
+
+        vm.prank(user1);
+        vm.expectRevert("Not enough balance");
+        token.transferFrom(owner, user2, 5000 * 10 ** 18);
+    }
+
+    function test_TransferFrom_MaxAllowance_NotReduced() public {
+        vm.prank(owner);
+        token.approve(user1, type(uint256).max);
+
+        vm.prank(user1);
+        token.transferFrom(owner, user2, 100 * 10 ** 18);
+
+        // max allowance should stay max
+        assertEq(token.allowance(owner, user1), type(uint256).max);
+        assertEq(token.balanceOf(user2), 100 * 10 ** 18);
+    }
 
 
 
