@@ -1,66 +1,78 @@
-## Foundry
+# ERC20 Token Foundry Project
 
-**Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**
+A hand-written ERC20 token implementation built with Solidity and tested with Foundry. I made this while learning smart contract development, mostly to understand how ERC20 actually works instead of just importing OpenZeppelin and calling it a day
 
-Foundry consists of:
+## What It Contains
 
-- **Forge**: Ethereum testing framework (like Truffle, Hardhat and DappTools).
-- **Cast**: Swiss army knife for interacting with EVM smart contracts, sending transactions and getting chain data.
-- **Anvil**: Local Ethereum node, akin to Ganache, Hardhat Network.
-- **Chisel**: Fast, utilitarian, and verbose solidity REPL.
+- `src/token.sol` - the ERC20 contract itself
+- `test/MyToken.t.sol` - Foundry tests covering the main behaviors
+- `script/Deploy.s.sol` - Foundry Deployed Script
+- `lib/forge-std` - Foundry's standard library (installed via `forge install`)
 
-## Documentation
+## About the token
 
-https://book.getfoundry.sh/
+The contract implements the standard ERC20 interface: `totalSupply`, `balanceOf`, `transfer`, `approve`, `allowance`, and `transferFrom`. It also has the two required events, `Transfer` and `Approval`
 
-## Usage
+The constructor takes three arguments: the token name, the symbol, and the initial supply. The initial supply is multiplied by `10 ** 18` inside the constructor, so when you pass `1000` you actually get 1000 whole tokens (i.e `1000 * 10**18` in the smallest unit). All of that supply is minted to whoever deploys the contract
 
-### Build
+Decimals are hardcoded to 18, which is the convention almost every token on Ethereum follows
 
-```shell
-$ forge build
+## Tests
+
+The tests live in `test/MyToken.t.sol` and use `forge-std`'s `Test` contract. They cover:
+
+- Deployment: name, symbol, decimals, total supply, and the deployer's balance
+- Transfers: normal transfers, insufficient balance, transfers to the zero address, and the `Transfer` event
+- Approval: setting allowances, overwriting previous allowances, approving the zero address, and the `Approval` event
+- `transferFrom`: spending allowances, insufficient allowance, insufficient balance, and the special case where the allowance is `type(uint256).max` (in that case it's not reduced)
+
+Run them with:
+
+```bash
+forge test
 ```
 
-### Test
+For more detail (traces, emitted events, gas), use:
 
-```shell
-$ forge test
+```bash
+forge test -vv
 ```
 
-### Format
+Or target a single test:
 
-```shell
-$ forge fmt
+```bash
+forge test --match-test test_Transfer -vvv
 ```
 
-### Gas Snapshots
+## Build
 
-```shell
-$ forge snapshot
+```bash
+forge build
 ```
 
-### Anvil
+## A few notes on the code
 
-```shell
-$ anvil
-```
+- Math uses `unchecked` blocks where it is already been proven safe by a `require` above it. That is just a small gas optimization, nothing clever
+- The allowance is only decremented on `transferFrom` if it isn't set to `type(uint256).max`. That's the same trick OpenZeppelin uses so users do not have to re-approve every time
+- There's no `mint` or `burn`. Supply is fixed at deployment. If you want those, you will need to add them yourself
+- The contract does not inherit from any interface or library. It is written from scratch on purpose, to keep the learning value
 
-### Deploy
+## Why I wrote this
 
-```shell
-$ forge script script/Counter.s.sol:CounterScript --rpc-url <your_rpc_url> --private-key <your_private_key>
-```
+I come from a backend background (JS, Java, Python) and I wanted to actually understand what happens inside an ERC20 rather than treating it as a black box. Writing one by hand forces you to deal with storage, visibility, `msg.sender`, events, allowances, and all the little edge cases the standard has. Once you have done it once, using OpenZeppelin feels more easy
 
-### Cast
+## Future Updates
 
-```shell
-$ cast <subcommand>
-```
+Things I plan to add or try next:
 
-### Help
+- A version that inherits from OpenZeppelin's `ERC20` so I can compare the two side by side
+- `mint` and `burn` functions with an owner-only guard
+- An ERC721 (NFT) following the same hand written approach
+- Basic fuzz tests with Foundry's `testFuzz_` prefix
 
-```shell
-$ forge --help
-$ anvil --help
-$ cast --help
-```
+## License
+MIT. See the SPDX header in the source files
+
+---
+`Tizih Mark Marko`
+`29/09/2026`
