@@ -52,6 +52,38 @@ contract MyTestToken is Test {
         token.transfer(user1, 100 * 10 ** 18);
     }
 
+    // ============ Approve & Allowance ============
+    function test_Approve() public {
+        vm.prank(owner);
+        token.approve(user1, 500 * 10 ** 18);
+
+        assertEq(token.allowance(owner, user1), 500 * 10 ** 18);
+    }
+
+    function test_Approve_EmitsEvent() public {
+        vm.prank(owner);
+        vm.expectEmit(true, true, false, true);
+        emit ERC20Token.Approval(owner, user1, 500 * 10 ** 18);
+        token.approve(user1, 500 * 10 ** 18);
+    }
+
+    function test_Approve_ToZeroAddress_Reverts() public {
+        vm.prank(owner);
+        vm.expectRevert("ERC20: approve to the zero address");
+        token.approve(address(0), 100 * 10 ** 18);
+    }
+
+    function test_Approve_OverwritesPreviousValue() public {
+        vm.prank(owner);
+        token.approve(user1, 500 * 10 ** 18);
+        vm.prank(owner);
+        token.approve(user1, 200 * 10 ** 18);
+
+        assertEq(token.allowance(owner, user1), 200 * 10 ** 18);
+    }
+
+    
+
 
 
 }
