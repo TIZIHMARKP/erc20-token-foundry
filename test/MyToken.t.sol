@@ -17,6 +17,7 @@ contract MyTestToken is Test {
 
     }
 
+    // ============ Deployment ============
     function test_Deployment() public view {
         assertEq(token.name(), "TestToken");
         assertEq(token.symbol(), "TT");
@@ -24,6 +25,7 @@ contract MyTestToken is Test {
         assertEq(token.balanceOf(owner), 1000 * 10 ** 18);
     }
 
+    // ============ Transfer ============
     function test_Transfer() public {
         vm.prank(owner);
         token.transfer(user1, 100 * 10 ** 18);
@@ -36,6 +38,97 @@ contract MyTestToken is Test {
         vm.expectRevert("Not enough balance");
         token.transfer(user2, 1000 * 10 ** 18);
     }
+
+    function test_Transfer_ToZeroAddress_Reverts() public{
+        vm.prank(owner);
+        vm.expectRevert("ERC20: transfer from the zero address");
+        token.transfer(address(0), 1 * 10 ** 18);
+    }
+
+    function test_Transfer_EmitsEvent() public {
+        vm.prank(owner);
+        vm.expectEmit(true, true, false, true);
+        emit ERC20Token.Transfer(owner, user1, 100 * 10 ** 18);
+        token.transfer(user1, 100 * 10 ** 18);
+    }
+
+    // ============ Approve & Allowance ============
+    function test_Approve() public {
+        vm.prank(owner);
+        token.approve(user1, 500 * 10 ** 18);
+
+        assertEq(token.allowance(owner, user1), 500 * 10 ** 18);
+    }
+
+    function test_Approve_EmitsEvent() public {
+        vm.prank(owner);
+        vm.expectEmit(true, true, false, true);
+        emit ERC20Token.Approval(owner, user1, 500 * 10 ** 18);
+        token.approve(user1, 500 * 10 ** 18);
+    }
+
+    function test_Approve_ToZeroAddress_Reverts() public {
+        vm.prank(owner);
+        vm.expectRevert("ERC20: approve to the zero address");
+        token.approve(address(0), 100 * 10 ** 18);
+    }
+
+    function test_Approve_OverwritesPreviousValue() public {
+        vm.prank(owner);
+        token.approve(user1, 500 * 10 ** 18);
+        vm.prank(owner);
+        token.approve(user1, 200 * 10 ** 18);
+
+        assertEq(token.allowance(owner, user1), 200 * 10 ** 18);
+    }
+
+
+    // ============ transferFrom ============
+    function test_TransferFrom() public {
+        // owner approves user1 to spend 300
+        vm.prank(owner);
+        token.approve(user1, 300 * 10 ** 18);
+
+        // user1 moves 100 from owner to user2
+        vm.prank(user1);
+        token.transferFrom(owner, user2, 100 * 10 ** 18);
+
+        assertEq(token.balanceOf(user2), 100 * 10 ** 18);
+        assertEq(token.balanceOf(owner), 900 * 10 ** 18);
+        assertEq(token.allowance(owner, user1), 200 * 10 ** 18); // reduced
+    }
+
+    function test_TransferFrom_InsufficientAllowance() public {
+        vm.prank(owner);
+        token.approve(user1, 50 * 10 ** 18);
+
+        vm.prank(user1);
+        vm.expectRevert("ERC20: insufficient allowance");
+        token.transferFrom(owner, user2, 100 * 10 ** 18);
+    }
+
+    function test_TransferFrom_InsufficientBalance() public {
+        vm.prank(owner);
+        token.approve(user1, 5000 * 10 ** 18);
+
+        vm.prank(user1);
+        vm.expectRevert("Not enough balance");
+        token.transferFrom(owner, user2, 5000 * 10 ** 18);
+    }
+
+    function test_TransferFrom_MaxAllowance_NotReduced() public {
+        vm.prank(owner);
+        token.approve(user1, type(uint256).max);
+
+        vm.prank(user1);
+        token.transferFrom(owner, user2, 100 * 10 ** 18);
+
+        // max allowance should stay max
+        assertEq(token.allowance(owner, user1), type(uint256).max);
+        assertEq(token.balanceOf(user2), 100 * 10 ** 18);
+    }
+
+
 
 }
 
