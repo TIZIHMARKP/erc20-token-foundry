@@ -70,6 +70,19 @@ Things I plan to add or try next:
 - An ERC721 (NFT) following the same hand written approach
 - Basic fuzz tests with Foundry's `testFuzz_` prefix
 
+## Screenshots
+
+![Forge Test](./screenshots/1_1-test-Deploy.png)
+**Forge Test**
+![Test Transfer](./screenshots/1_2-testTransfer.png)
+**Test Transfer**
+![Insufficient Balance](./screenshots/1_3-1-insuffcientBalanceTestError.png)
+**Insufficient Balance**
+![Test Transfer Error](./screenshots/1_3-insufficientBalanceTest.png)
+**Test Transfer Error**
+![Deployment](./screenshots/2_1-deployment.png)
+**Deployement**
+
 ## License
 MIT. See the SPDX header in the source files
 
